@@ -2,19 +2,27 @@ import re
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 
 from ai_companion.modules.image.image_to_text import ImageToText
 from ai_companion.modules.image.text_to_image import TextToImage
 from ai_companion.modules.speech import TextToSpeech
-from ai_companion.settings import settings
+from ai_companion.settings import settings, LLMProvider
 
 
 def get_chat_model(temperature: float = 0.7):
-    return ChatGroq(
-        api_key=settings.GROQ_API_KEY,
-        model_name=settings.TEXT_MODEL_NAME,
-        temperature=temperature,
-    )
+    if settings.LLM_PROVIDER == LLMProvider.GROQ:
+        return ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model_name=settings.TEXT_MODEL_NAME,
+            temperature=temperature,
+        )
+    else:  # OpenAI
+        return ChatOpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            model_name=settings.TEXT_MODEL_NAME,
+            temperature=temperature,
+        )
 
 
 def get_text_to_speech_module():

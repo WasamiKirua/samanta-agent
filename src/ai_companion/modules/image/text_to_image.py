@@ -5,9 +5,10 @@ from typing import Optional
 
 from ai_companion.core.exceptions import TextToImageError
 from ai_companion.core.prompts import IMAGE_ENHANCEMENT_PROMPT, IMAGE_SCENARIO_PROMPT
-from ai_companion.settings import settings
+from ai_companion.settings import settings, LLMProvider
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from together import Together
 
@@ -31,7 +32,7 @@ class EnhancedPrompt(BaseModel):
 class TextToImage:
     """A class to handle text-to-image generation using Together AI."""
 
-    REQUIRED_ENV_VARS = ["GROQ_API_KEY", "TOGETHER_API_KEY"]
+    REQUIRED_ENV_VARS = ["GROQ_API_KEY", "TOGETHER_API_KEY", "OPENAI_API_KEY"]
 
     def __init__(self):
         """Initialize the TextToImage class and validate environment variables."""
@@ -51,6 +52,23 @@ class TextToImage:
         if self._together_client is None:
             self._together_client = Together(api_key=settings.TOGETHER_API_KEY)
         return self._together_client
+
+    def _get_llm(self, temperature: float = 0.4, max_retries: int = 2):
+        """Get the appropriate LLM based on the provider setting."""
+        if settings.LLM_PROVIDER == LLMProvider.GROQ:
+            return ChatGroq(
+                model=settings.TEXT_MODEL_NAME,
+                api_key=settings.GROQ_API_KEY,
+                temperature=temperature,
+                max_retries=max_retries,
+            )
+        else:  # OpenAI
+            return ChatOpenAI(
+                model=settings.TEXT_MODEL_NAME,
+                api_key=settings.OPENAI_API_KEY,
+                temperature=temperature,
+                max_retries=max_retries,
+            )
 
     async def generate_image(self, prompt: str, output_path: str = "") -> bytes:
         """Generate an image from a prompt using Together AI."""
@@ -90,13 +108,7 @@ class TextToImage:
 
             self.logger.info("Creating scenario from chat history")
 
-            llm = ChatGroq(
-                model=settings.TEXT_MODEL_NAME,
-                api_key=settings.GROQ_API_KEY,
-                temperature=0.4,
-                max_retries=2,
-            )
-
+            llm = self._get_llm(temperature=0.4, max_retries=2)
             structured_llm = llm.with_structured_output(ScenarioPrompt)
 
             chain = (
@@ -120,13 +132,7 @@ class TextToImage:
         try:
             self.logger.info(f"Enhancing prompt: '{prompt}'")
 
-            llm = ChatGroq(
-                model=settings.TEXT_MODEL_NAME,
-                api_key=settings.GROQ_API_KEY,
-                temperature=0.25,
-                max_retries=2,
-            )
-
+            llm = self._get_llm(temperature=0.25, max_retries=2)
             structured_llm = llm.with_structured_output(EnhancedPrompt)
 
             chain = (

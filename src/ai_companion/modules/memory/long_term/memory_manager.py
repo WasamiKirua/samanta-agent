@@ -5,9 +5,10 @@ from typing import List, Optional
 
 from ai_companion.core.prompts import MEMORY_ANALYSIS_PROMPT
 from ai_companion.modules.memory.long_term.vector_store import get_vector_store
-from ai_companion.settings import settings
+from ai_companion.settings import settings, LLMProvider
 from langchain_core.messages import BaseMessage
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 
@@ -27,12 +28,24 @@ class MemoryManager:
     def __init__(self):
         self.vector_store = get_vector_store()
         self.logger = logging.getLogger(__name__)
-        self.llm = ChatGroq(
-            model=settings.SMALL_TEXT_MODEL_NAME,
-            api_key=settings.GROQ_API_KEY,
-            temperature=0.1,
-            max_retries=2,
-        ).with_structured_output(MemoryAnalysis)
+        
+        # Initialize the appropriate LLM based on provider
+        if settings.LLM_PROVIDER == LLMProvider.GROQ:
+            llm = ChatGroq(
+                model=settings.SMALL_TEXT_MODEL_NAME,
+                api_key=settings.GROQ_API_KEY,
+                temperature=0.1,
+                max_retries=2,
+            )
+        else:  # OpenAI
+            llm = ChatOpenAI(
+                model=settings.SMALL_TEXT_MODEL_NAME,
+                api_key=settings.OPENAI_API_KEY,
+                temperature=0.1,
+                max_retries=2,
+            )
+        
+        self.llm = llm.with_structured_output(MemoryAnalysis)
 
     async def _analyze_memory(self, message: str) -> MemoryAnalysis:
         """Analyze a message to determine importance and format if needed."""
