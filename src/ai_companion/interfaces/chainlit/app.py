@@ -86,43 +86,75 @@ async def on_audio_chunk(chunk: cl.AudioChunk):
     """Handle incoming audio chunks"""
     if chunk.isStart:
         buffer = BytesIO()
-        buffer.name = f"input_audio.{chunk.mimeType.split('/')[1]}"
+        # Store the original MIME type
+        mime_type = chunk.mimeType
+        # Get file extension from MIME type
+        extension = mime_type.split('/')[1]
+        
+        # Set the buffer name with the correct extension
+        buffer.name = f"input_audio.{extension}"
+        
         cl.user_session.set("audio_buffer", buffer)
-        cl.user_session.set("audio_mime_type", chunk.mimeType)
+        cl.user_session.set("audio_mime_type", mime_type)
+        cl.user_session.set("audio_extension", extension)
+        print(f"Starting audio recording with MIME type: {mime_type}")
+    
     cl.user_session.get("audio_buffer").write(chunk.data)
 
 
 @cl.on_audio_end
 async def on_audio_end(elements):
-    """Process completed audio input"""
-    # Get audio data
+    """Handle end of audio recording"""
     audio_buffer = cl.user_session.get("audio_buffer")
+    audio_mime_type = cl.user_session.get("audio_mime_type")
+    audio_extension = cl.user_session.get("audio_extension")
+    
+    # Log the audio details for debugging
+    print(f"Audio MIME type: {audio_mime_type}")
+    print(f"Audio extension: {audio_extension}")
+    
     audio_buffer.seek(0)
     audio_data = audio_buffer.read()
-
+    
+    # Log the audio file size for debugging
+    print(f"Audio file size: {len(audio_data)} bytes")
+    
     # Show user's audio message
-    input_audio_el = cl.Audio(mime="audio/mpeg3", content=audio_data)
+    input_audio_el = cl.Audio(mime=audio_mime_type, content=audio_data)
     await cl.Message(author="You", content="", elements=[input_audio_el, *elements]).send()
-
-    # Use global SpeechToText instance
-    transcription = await speech_to_text.transcribe(audio_data)
-
-    thread_id = cl.user_session.get("thread_id")
-
-    async with AsyncSqliteSaver.from_conn_string(settings.SHORT_TERM_MEMORY_DB_PATH) as short_term_memory:
-        graph = graph_builder.compile(checkpointer=short_term_memory)
-        output_state = await graph.ainvoke(
-            {"messages": [HumanMessage(content=transcription)]},
-            {"configurable": {"thread_id": thread_id}},
-        )
-
-    # Use global TextToSpeech instance
-    audio_buffer = await text_to_speech.synthesize(output_state["messages"][-1].content)
-
-    output_audio_el = cl.Audio(
-        name="Audio",
-        auto_play=True,
-        mime="audio/mpeg3",
-        content=audio_buffer,
-    )
-    await cl.Message(content=output_state["messages"][-1].content, elements=[output_audio_el]).send()
+    
+    try:
+        # Create a new BytesIO object with the correct filename for transcription
+        # This helps the speech_to_text module identify the correct format
+        transcription_buffer = BytesIO(audio_data)
+        transcription_buffer.name = f"audio.{audio_extension}"
+        
+        # Use global SpeechToText instance
+        transcription = await speech_to_text.transcribe(transcription_buffer.getvalue())
+        
+        thread_id = cl.user_session.get("thread_id")
+        
+        async with AsyncSqliteSaver.from_conn_string(settings.SHORT_TERM_MEMORY_DB_PATH) as short_term_memory:
+            graph = graph_builder.compile(checkpointer=short_term_memory)
+            output_state = await graph.ainvoke(
+                {"messages": [HumanMessage(content=transcription)]},
+                {"configurable": {"thread_id": thread_id}},
+            )
+        
+        # Use global TextToSpeech instance
+        audio_buffer = await text_to_speech.synthesize(output_state["messages"][-1].content)
+        
+        # Send the response
+        await cl.Message(
+            author="Assistant",
+            content=output_state["messages"][-1].content,
+            elements=[cl.Audio(mime="audio/mpeg", content=audio_buffer)],
+        ).send()
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error processing audio: {str(e)}")
+        # Send an error message to the user
+        await cl.Message(
+            author="Assistant",
+            content=f"I'm sorry, I couldn't process your audio message. Error: {str(e)}",
+        ).send()

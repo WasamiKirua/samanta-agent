@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the dependency management files (lock file and pyproject.toml) first
-COPY uv.lock pyproject.toml /app/
+COPY uv.lock pyproject.toml README.md /app/
 
 # Install the application dependencies
 RUN uv sync --frozen --no-cache
@@ -33,7 +33,7 @@ RUN uv pip install -e .
 VOLUME ["/app/data"]
 
 # Expose the port
-EXPOSE 8080
+EXPOSE 8081
 
 # Run the FastAPI app using uvicorn
-CMD ["/app/.venv/bin/fastapi", "run", "ai_companion/interfaces/whatsapp/webhook_endpoint.py", "--port", "8080", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/fastapi", "run", "ai_companion/interfaces/whatsapp/webhook_endpoint.py", "--port", "8081", "--host", "0.0.0.0"]

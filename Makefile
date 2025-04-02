@@ -6,11 +6,17 @@ include .env
 
 CHECK_DIRS := .
 
-ava-build:
-	docker compose build
+ava-build-qdrant:
+	docker compose --profile qdrant_db build
 
-ava-run:
-	docker compose up --build -d
+ava-build-weaviate:
+	docker compose --profile weaviate_db build
+
+ava-run-qdrant:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml.qdrant --profile qdrant_db up
+
+ava-run-weaviate:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml.weaviate --profile weaviate_db up
 
 ava-stop:
 	docker compose stop

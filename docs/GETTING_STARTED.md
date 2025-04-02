@@ -19,7 +19,10 @@ Once uv is intalled, you can install the project dependencies. First of all, let
 
 ```bash
 uv venv .venv
+# macOS / Linux
 . .venv/bin/activate # or source .venv/bin/activate
+# Windows
+. .\.venv\Scripts\Activate.ps1 # or .\.venv\Scripts\activate
 uv pip install -e .
 ```
 Just to make sure that everything is working, simply run the following command:
@@ -116,7 +119,7 @@ This command will start a Docker Compose application with three services:
 
 * A Qdrant Database (http://localhost:6333/dashboard)
 * A Chainlit interface (http://localhost:8000)
-* A FastAPI application (http://localhost:8080/docs)
+* A FastAPI application (http://localhost:8081/docs)
 
 The FastAPI application is necessary for the WhatsApp integration, but that's something we will cover in Lesson 6. So, for now,
 you can ignore it. Simply click the link to the Chainlit interface to start interacting with Ava.

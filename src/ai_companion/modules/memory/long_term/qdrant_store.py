@@ -4,36 +4,14 @@ from datetime import datetime
 from functools import lru_cache
 from typing import List, Optional
 
+from ai_companion.modules.memory.long_term.base_vector_store import BaseVectorStore, Memory
 from ai_companion.settings import settings
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 from sentence_transformers import SentenceTransformer
 
-from ai_companion.modules.memory.long_term.base_vector_store import BaseVectorStore
-from ai_companion.modules.memory.long_term.qdrant_store import QdrantStore
-from ai_companion.modules.memory.long_term.weaviate_store import WeaviateStore
-from ai_companion.settings import VectorDBProvider
 
-
-@dataclass
-class Memory:
-    """Represents a memory entry in the vector store."""
-
-    text: str
-    metadata: dict
-    score: Optional[float] = None
-
-    @property
-    def id(self) -> Optional[str]:
-        return self.metadata.get("id")
-
-    @property
-    def timestamp(self) -> Optional[datetime]:
-        ts = self.metadata.get("timestamp")
-        return datetime.fromisoformat(ts) if ts else None
-
-
-class VectorStore:
+class QdrantStore(BaseVectorStore):
     """A class to handle vector storage operations using Qdrant."""
 
     REQUIRED_ENV_VARS = ["QDRANT_URL", "QDRANT_API_KEY"]
@@ -41,10 +19,10 @@ class VectorStore:
     COLLECTION_NAME = "long_term_memory"
     SIMILARITY_THRESHOLD = 0.9  # Threshold for considering memories as similar
 
-    _instance: Optional["VectorStore"] = None
+    _instance: Optional["QdrantStore"] = None
     _initialized: bool = False
 
-    def __new__(cls) -> "VectorStore":
+    def __new__(cls) -> "QdrantStore":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -79,26 +57,14 @@ class VectorStore:
         )
 
     def find_similar_memory(self, text: str) -> Optional[Memory]:
-        """Find if a similar memory already exists.
-
-        Args:
-            text: The text to search for
-
-        Returns:
-            Optional Memory if a similar one is found
-        """
+        """Find if a similar memory already exists."""
         results = self.search_memories(text, k=1)
         if results and results[0].score >= self.SIMILARITY_THRESHOLD:
             return results[0]
         return None
 
     def store_memory(self, text: str, metadata: dict) -> None:
-        """Store a new memory in the vector store or update if similar exists.
-
-        Args:
-            text: The text content of the memory
-            metadata: Additional information about the memory (timestamp, type, etc.)
-        """
+        """Store a new memory in the vector store."""
         if not self._collection_exists():
             self._create_collection()
 
@@ -123,15 +89,7 @@ class VectorStore:
         )
 
     def search_memories(self, query: str, k: int = 5) -> List[Memory]:
-        """Search for similar memories in the vector store.
-
-        Args:
-            query: Text to search for
-            k: Number of results to return
-
-        Returns:
-            List of Memory objects
-        """
+        """Search for similar memories in the vector store."""
         if not self._collection_exists():
             return []
 
@@ -149,13 +107,4 @@ class VectorStore:
                 score=hit.score,
             )
             for hit in results
-        ]
-
-
-@lru_cache
-def get_vector_store() -> BaseVectorStore:
-    """Get the appropriate vector store based on the provider setting."""
-    if settings.VECTOR_DB_PROVIDER == VectorDBProvider.QDRANT:
-        return QdrantStore()
-    else:  # Weaviate
-        return WeaviateStore()
+        ] 

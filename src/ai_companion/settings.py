@@ -7,6 +7,20 @@ class LLMProvider(str, Enum):
     OPENAI = "openai"
 
 
+class VectorDBProvider(str, Enum):
+    QDRANT = "qdrant"
+    WEAVIATE = "weaviate"
+
+
+class STTProvider(str, Enum):
+    GROQ = "groq"
+    OPENAI = "openai"
+
+class TTSProvider(str, Enum):
+    ELEVENLABS = "elevenlabs"
+    OPENAI = "openai"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_file_encoding="utf-8")
 
@@ -14,14 +28,34 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     LLM_PROVIDER: LLMProvider = LLMProvider.GROQ
 
+    STT_PROVIDER: STTProvider = STTProvider.GROQ
+    STT_LANGUAGE: str = "en"
+    STT_GROQ_MODEL_NAME: str = "whisper-large-v3-turbo"
+    STT_OPENAI_MODEL_NAME: str = "gpt-4o-transcribe"
+
+
+    TTS_PROVIDER: str
+    TTS_PROVIDER: TTSProvider = TTSProvider.ELEVENLABS
+    TTS_ELEVENLAB_MODEL_NAME: str = "eleven_flash_v2_5"
+    TTS_OPENAI_MODEL_NAME: str = "gpt-4o-mini-tts"
+
     ELEVENLABS_API_KEY: str
     ELEVENLABS_VOICE_ID: str
+    OPENAI_VOICE_ID: str
     TOGETHER_API_KEY: str
 
+    # Vector Database Settings
+    VECTOR_DB_PROVIDER: VectorDBProvider = VectorDBProvider.QDRANT
+    
+    # Qdrant Settings
     QDRANT_API_KEY: str | None
     QDRANT_URL: str
     QDRANT_PORT: str = "6333"
     QDRANT_HOST: str | None = None
+    
+    # Weaviate Settings
+    WEAVIATE_HOST: str
+    WEAVIATE_PORT: int
 
     @property
     def TEXT_MODEL_NAME(self) -> str:
@@ -39,8 +73,6 @@ class Settings(BaseSettings):
         else:  # OpenAI
             return "gpt-4o-mini-2024-07-18"
 
-    STT_MODEL_NAME: str = "whisper-large-v3-turbo"
-    TTS_MODEL_NAME: str = "eleven_flash_v2_5"
     TTI_MODEL_NAME: str = "black-forest-labs/FLUX.1-schnell-Free"
     ITT_MODEL_NAME: str = "llama-3.2-90b-vision-preview"
 

@@ -36,8 +36,8 @@ class TextToImage:
 
     def __init__(self):
         """Initialize the TextToImage class and validate environment variables."""
-        self._validate_env_vars()
-        self._together_client: Optional[Together] = None
+        #self._validate_env_vars()
+        #self._together_client: Optional[Together] = None
         self.logger = logging.getLogger(__name__)
 
     def _validate_env_vars(self) -> None:

@@ -1,16 +1,5 @@
-version: "3.9"
-
+---
 services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    profiles:
-      - qdrant_db
-    ports:
-      - "6333:6333"
-    volumes:
-      - ./long_term_memory:/qdrant/storage
-    restart: unless-stopped
-
   weaviate:
     command:
     - --host
@@ -20,52 +9,32 @@ services:
     - --scheme
     - http
     image: cr.weaviate.io/semitechnologies/weaviate:1.28.2
-    profiles:
-      - weaviate_db
     ports:
-      - "8080:8080"
-      - "50051:50051"
+    - 8080:8080
+    - 50051:50051
     volumes:
-      - ./long_term_memory:/var/lib/weaviate
+    - ./weaviate_data:/var/lib/weaviate
     restart: on-failure:0
     environment:
       TRANSFORMERS_INFERENCE_API: 'http://t2v-transformers:8080'
-      AUTOSCHEMA_ENABLED: 'false'
       #QNA_INFERENCE_API: 'http://qna-transformers:8080'
       #NER_INFERENCE_API: 'http://ner-transformers:8080'
+      AUTOSCHEMA_ENABLED: 'false'
       QUERY_DEFAULTS_LIMIT: 5
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'text2vec-transformers'
-      ENABLE_MODULES: 'text2vec-transformers' #'qna-transformers,ner-transformers'
+      ENABLE_MODULES: 'text2vec-transformers' #,qna-transformers,ner-transformers'
       CLUSTER_HOSTNAME: 'node1'
   t2v-transformers:
     image: cr.weaviate.io/semitechnologies/transformers-inference:baai-bge-m3-onnx # CPU Optimized Multilanguage
-    profiles:
-      - weaviate_db
     environment:
       ENABLE_CUDA: '0' # You can set to 1 to use the GPU. Don't forget to change the t2v transformers model as well (we are using the CPU optim)
-
-  chainlit:
-    build:
-      context: .
-      dockerfile: Dockerfile.chainlit
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - ./short_term_memory:/app/data
-
-  whatsapp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - ./short_term_memory:/app/data
+  # qna-transformers:
+  #   image: cr.weaviate.io/semitechnologies/qna-transformers:distilbert-base-uncased-distilled-squad
+  #   environment:
+  #     ENABLE_CUDA: '0'
+  # ner-transformers:
+  #   image: cr.weaviate.io/semitechnologies/ner-transformers:dbmdz-bert-large-cased-finetuned-conll03-english
+  #   environment:
+  #     ENABLE_CUDA: '0'

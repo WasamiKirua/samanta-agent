@@ -110,7 +110,7 @@ async def whatsapp_handler(request: Request) -> Response:
 
 async def download_media(media_id: str) -> bytes:
     """Download media from WhatsApp."""
-    media_metadata_url = f"https://graph.facebook.com/v21.0/{media_id}"
+    media_metadata_url = f"https://graph.facebook.com/v22.0/{media_id}"
     headers = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
 
     async with httpx.AsyncClient() as client:
@@ -126,27 +126,51 @@ async def download_media(media_id: str) -> bytes:
 
 async def process_audio_message(message: Dict) -> str:
     """Download and transcribe audio message."""
-    audio_id = message["audio"]["id"]
-    media_metadata_url = f"https://graph.facebook.com/v21.0/{audio_id}"
-    headers = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
+    try:
+        audio_id = message["audio"]["id"]
+        media_metadata_url = f"https://graph.facebook.com/v22.0/{audio_id}"
+        headers = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
 
-    async with httpx.AsyncClient() as client:
-        metadata_response = await client.get(media_metadata_url, headers=headers)
-        metadata_response.raise_for_status()
-        metadata = metadata_response.json()
-        download_url = metadata.get("url")
+        async with httpx.AsyncClient() as client:
+            metadata_response = await client.get(media_metadata_url, headers=headers)
+            metadata_response.raise_for_status()
+            metadata = metadata_response.json()
+            download_url = metadata.get("url")
+            
+            if not download_url:
+                logger.error(f"Failed to get download URL for audio ID: {audio_id}")
+                return "Sorry, I couldn't process your audio message. Please try again or send a text message instead."
 
-    # Download the audio file
-    async with httpx.AsyncClient() as client:
-        audio_response = await client.get(download_url, headers=headers)
-        audio_response.raise_for_status()
+        # Download the audio file
+        async with httpx.AsyncClient() as client:
+            audio_response = await client.get(download_url, headers=headers)
+            audio_response.raise_for_status()
+            
+            # Log content type and size for debugging
+            content_type = audio_response.headers.get("content-type", "unknown")
+            content_length = audio_response.headers.get("content-length", "unknown")
+            logger.info(f"Audio content type: {content_type}, size: {content_length} bytes")
+            
+            if not audio_response.content:
+                logger.error("Downloaded audio content is empty")
+                return "Sorry, I couldn't process your audio message. The audio file appears to be empty."
 
-    # Prepare for transcription
-    audio_buffer = BytesIO(audio_response.content)
-    audio_buffer.seek(0)
-    audio_data = audio_buffer.read()
+        # Prepare for transcription
+        audio_buffer = BytesIO(audio_response.content)
+        audio_buffer.seek(0)
+        audio_data = audio_buffer.read()
+        
+        # Log audio data size
+        logger.info(f"Audio data size: {len(audio_data)} bytes")
+        
+        if len(audio_data) < 100:  # Arbitrary small size threshold
+            logger.error(f"Audio data too small: {len(audio_data)} bytes")
+            return "Sorry, I couldn't process your audio message. The audio file appears to be too small or corrupted."
 
-    return await speech_to_text.transcribe(audio_data)
+        return await speech_to_text.transcribe(audio_data)
+    except Exception as e:
+        logger.error(f"Error processing audio message: {str(e)}", exc_info=True)
+        return "Sorry, I couldn't process your audio message. Please try again or send a text message instead."
 
 
 async def send_response(
@@ -193,7 +217,7 @@ async def send_response(
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"https://graph.facebook.com/v21.0/{WHATSAPP_PHONE_NUMBER_ID}/messages",
+            f"https://graph.facebook.com/v22.0/{WHATSAPP_PHONE_NUMBER_ID}/messages",
             headers=headers,
             json=json_data,
         )
@@ -209,7 +233,7 @@ async def upload_media(media_content: BytesIO, mime_type: str) -> str:
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"https://graph.facebook.com/v21.0/{WHATSAPP_PHONE_NUMBER_ID}/media",
+            f"https://graph.facebook.com/v22.0/{WHATSAPP_PHONE_NUMBER_ID}/media",
             headers=headers,
             files=files,
             data=data,

@@ -15,8 +15,8 @@ class ImageToText:
 
     def __init__(self):
         """Initialize the ImageToText class and validate environment variables."""
-        self._validate_env_vars()
-        self._client: Optional[Groq] = None
+        #self._validate_env_vars()
+        #self._client: Optional[Groq] = None
         self.logger = logging.getLogger(__name__)
 
     def _validate_env_vars(self) -> None:
