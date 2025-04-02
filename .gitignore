@@ -321,6 +321,7 @@ generated_images/
 .files   
 chainlit.md
 .chainlit/
+notebooks/weaviate_data/
 src/ai_companion/modules/memory/short_term/*.db
 long_term_memory/
 short_term_memory/
