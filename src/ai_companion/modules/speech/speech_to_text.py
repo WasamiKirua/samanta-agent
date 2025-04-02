@@ -44,11 +44,11 @@ class SpeechToText:
         else:  # OpenAI
             return settings.STT_OPENAI_MODEL_NAME, settings.STT_LANGUAGE
 
-    async def transcribe(self, audio_data: bytes) -> str:
+    async def transcribe(self, audio_data: Union[bytes, BytesIO]) -> str:
         """Convert speech to text using the selected provider's model.
 
         Args:
-            audio_data: Binary audio data
+            audio_data: Binary audio data or BytesIO object
 
         Returns:
             str: Transcribed text
@@ -60,6 +60,21 @@ class SpeechToText:
         if not audio_data:
             raise ValueError("Audio data cannot be empty")
 
+        # Handle BytesIO objects from Chainlit
+        if isinstance(audio_data, BytesIO):
+            file_obj = audio_data
+            # Make sure we're at the beginning of the buffer
+            file_obj.seek(0)
+            # Get raw bytes for writing to temp file
+            raw_bytes = file_obj.getvalue()
+            # Log filename
+            if hasattr(file_obj, 'name'):
+                print(f"Using provided BytesIO with name: {file_obj.name}")
+        else:
+            # Handle raw bytes from WhatsApp
+            raw_bytes = audio_data
+            file_obj = None
+            
         try:
             # Create a temporary file with appropriate extension based on provider
             if settings.STT_PROVIDER == STTProvider.OPENAI:
@@ -70,7 +85,7 @@ class SpeechToText:
                 suffix = ".ogg"
                 
             with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
-                temp_file.write(audio_data)
+                temp_file.write(raw_bytes)
                 temp_file_path = temp_file.name
 
             try:
@@ -84,28 +99,30 @@ class SpeechToText:
                     
                     # For OpenAI, we don't specify file_format as it's not supported
                     if settings.STT_PROVIDER == STTProvider.OPENAI:
-                        # Use a more direct approach with OpenAI API
-                        # Create a file-like object from the bytes
-                        file_obj = BytesIO(audio_data)
-                        
-                        # Smart format detection based on buffer attributes
-                        # Check if there's a name attribute (set by Chainlit)
-                        if hasattr(file_obj, 'name') and file_obj.name and '.' in file_obj.name:
-                            # Use the existing name
-                            pass
+                        if file_obj is not None:
+                            # For Chainlit: use the BytesIO object directly with its filename
+                            # Reset position to beginning of buffer
+                            file_obj.seek(0)
+                            print(f"Using file extension from BytesIO: {file_obj.name}")
+                            
+                            transcription = self.client.audio.transcriptions.create(
+                                file=file_obj,
+                                model=model,
+                                language=language,
+                                response_format="text"
+                            )
                         else:
-                            # Default to ogg for WhatsApp compatibility
-                            file_obj.name = "audio.ogg"
-                        
-                        # Log the file extension for debugging
-                        print(f"Using file extension: {file_obj.name}")
-                        
-                        transcription = self.client.audio.transcriptions.create(
-                            file=file_obj,
-                            model=model,
-                            language=language,
-                            response_format="text"
-                        )
+                            # For WhatsApp: create a new BytesIO with default name
+                            whatsapp_file_obj = BytesIO(raw_bytes)
+                            whatsapp_file_obj.name = "audio.ogg"  # Default for WhatsApp
+                            print(f"Using default file extension for WhatsApp: {whatsapp_file_obj.name}")
+                            
+                            transcription = self.client.audio.transcriptions.create(
+                                file=whatsapp_file_obj,
+                                model=model,
+                                language=language,
+                                response_format="text"
+                            )
                     else:  # Groq
                         transcription = self.client.audio.transcriptions.create(
                             file=audio_file,

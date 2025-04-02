@@ -127,10 +127,14 @@ async def on_audio_end(elements):
         # Create a new BytesIO object with the correct filename for transcription
         # This helps the speech_to_text module identify the correct format
         transcription_buffer = BytesIO(audio_data)
-        transcription_buffer.name = f"audio.{audio_extension}"
         
-        # Use global SpeechToText instance
-        transcription = await speech_to_text.transcribe(transcription_buffer.getvalue())
+        # Ensure we're using the correct file extension
+        # OpenAI supports mp3, mp4, mpeg, mpga, m4a, wav, and webm
+        transcription_buffer.name = f"audio.{audio_extension}"
+        print(f"Created transcription buffer with name: {transcription_buffer.name}")
+        
+        # Use global SpeechToText instance - pass the buffer object directly to preserve filename
+        transcription = await speech_to_text.transcribe(transcription_buffer)
         
         thread_id = cl.user_session.get("thread_id")
         
