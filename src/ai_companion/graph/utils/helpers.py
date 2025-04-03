@@ -17,6 +17,13 @@ def get_chat_model(temperature: float = 0.7):
             model_name=settings.TEXT_MODEL_NAME,
             temperature=temperature,
         )
+    elif settings.LLM_PROVIDER == LLMProvider.OLLAMA:
+        return ChatOpenAI(
+            api_key="ollama",  # Required but unused for Ollama
+            model_name=settings.TEXT_MODEL_NAME,
+            base_url=settings.OLLAMA_BASE_URL,
+            temperature=temperature,
+        )
     else:  # OpenAI
         return ChatOpenAI(
             api_key=settings.OPENAI_API_KEY,

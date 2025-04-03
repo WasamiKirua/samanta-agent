@@ -5,12 +5,11 @@ from enum import Enum
 class LLMProvider(str, Enum):
     GROQ = "groq"
     OPENAI = "openai"
-
+    OLLAMA = "ollama"
 
 class VectorDBProvider(str, Enum):
     QDRANT = "qdrant"
     WEAVIATE = "weaviate"
-
 
 class STTProvider(str, Enum):
     GROQ = "groq"
@@ -34,7 +33,6 @@ class Settings(BaseSettings):
     STT_OPENAI_MODEL_NAME: str = "gpt-4o-transcribe"
 
 
-    TTS_PROVIDER: str
     TTS_PROVIDER: TTSProvider = TTSProvider.ELEVENLABS
     TTS_ELEVENLAB_MODEL_NAME: str = "eleven_flash_v2_5"
     TTS_OPENAI_MODEL_NAME: str = "gpt-4o-mini-tts"
@@ -57,11 +55,17 @@ class Settings(BaseSettings):
     WEAVIATE_HOST: str
     WEAVIATE_PORT: int
 
+    # Ollama settings
+    OLLAMA_BASE_URL: str
+    OLLAMA_MODEL_NAME: str
+
     @property
     def TEXT_MODEL_NAME(self) -> str:
         """Get the appropriate text model name based on the provider."""
         if self.LLM_PROVIDER == LLMProvider.GROQ:
             return "llama-3.3-70b-versatile"
+        elif self.LLM_PROVIDER == LLMProvider.OLLAMA:
+            return self.OLLAMA_MODEL_NAME
         else:  # OpenAI
             return "gpt-4o-2024-08-06"
 
@@ -70,6 +74,8 @@ class Settings(BaseSettings):
         """Get the appropriate small text model name based on the provider."""
         if self.LLM_PROVIDER == LLMProvider.GROQ:
             return "gemma2-9b-it"
+        elif self.LLM_PROVIDER == LLMProvider.OLLAMA:
+            return self.OLLAMA_MODEL_NAME
         else:  # OpenAI
             return "gpt-4o-mini-2024-07-18"
 

@@ -37,6 +37,14 @@ class MemoryManager:
                 temperature=0.1,
                 max_retries=2,
             )
+        elif settings.LLM_PROVIDER == LLMProvider.OLLAMA:
+            llm = ChatOpenAI(
+                api_key="ollama",  # Required but unused for Ollama
+                model_name=settings.SMALL_TEXT_MODEL_NAME,
+                base_url=settings.OLLAMA_BASE_URL,
+                temperature=0.1,
+                max_retries=2,
+            )
         else:  # OpenAI
             llm = ChatOpenAI(
                 model=settings.SMALL_TEXT_MODEL_NAME,
