@@ -8,6 +8,7 @@ from ai_companion.core.prompts import IMAGE_ENHANCEMENT_PROMPT, IMAGE_SCENARIO_P
 from ai_companion.settings import settings, LLMProvider
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from together import Together
@@ -57,14 +58,14 @@ class TextToImage:
         """Get the appropriate LLM based on the provider setting."""
         if settings.LLM_PROVIDER == LLMProvider.GROQ:
             return ChatGroq(
-                model=settings.TEXT_MODEL_NAME,
+                model=settings.IMAGE_MODEL_NAME,  # Use the fixed image model name
                 api_key=settings.GROQ_API_KEY,
                 temperature=temperature,
                 max_retries=max_retries,
             )
         else:  # OpenAI
             return ChatOpenAI(
-                model=settings.TEXT_MODEL_NAME,
+                model=settings.IMAGE_MODEL_NAME,  # Use the fixed image model name
                 api_key=settings.OPENAI_API_KEY,
                 temperature=temperature,
                 max_retries=max_retries,

@@ -22,10 +22,12 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-groq" },
+    { name = "langchain-ollama" },
     { name = "langchain-openai" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-duckdb" },
     { name = "langgraph-checkpoint-sqlite" },
+    { name = "ollama" },
     { name = "openai" },
     { name = "pre-commit" },
     { name = "pydantic" },
@@ -50,10 +52,12 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3.13" },
     { name = "langchain-community", specifier = ">=0.3.13" },
     { name = "langchain-groq", specifier = ">=0.2.2" },
+    { name = "langchain-ollama", specifier = ">=0.3.0" },
     { name = "langchain-openai", specifier = ">=0.2.14" },
     { name = "langgraph", specifier = ">=0.2.60" },
     { name = "langgraph-checkpoint-duckdb", specifier = ">=2.0.1" },
     { name = "langgraph-checkpoint-sqlite", specifier = ">=2.0.1" },
+    { name = "ollama", specifier = ">=0.4.7" },
     { name = "openai", specifier = ">=1.58.1" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "pydantic", specifier = "==2.10.0" },
@@ -1229,7 +1233,7 @@ wheels = [
 
 [[package]]
 name = "langchain-core"
-version = "0.3.28"
+version = "0.3.50"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonpatch" },
@@ -1240,9 +1244,9 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/de/f2/1787f9e7fcf6bee70f7a8f488ee95b814408706ab35d61dbba279fbe7361/langchain_core-0.3.28.tar.gz", hash = "sha256:407f7607e6b3c0ebfd6094da95d39b701e22e59966698ef126799782953e7f2c", size = 330743 }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/af/19315212ba44db8062a394bc3a44de72292e8df11802e8b6d341eee20149/langchain_core-0.3.50.tar.gz", hash = "sha256:8e141b89f2be6020e94c32d7d5141fc6eb5acf1e04e4d80ebd2c74bf30de9f77", size = 542071 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/bf/07e63d4b4c41aa49daf4a4499e8010928ce8545469f0265544f925c95fff/langchain_core-0.3.28-py3-none-any.whl", hash = "sha256:a02f81ca53a8eed757133797e5a602ca80c1324bbecb0c5d86ef7bd3d6625372", size = 411553 },
+    { url = "https://files.pythonhosted.org/packages/01/78/39209de2ccc45a18e4bfa644a9846ec72831b464172b27dee156a622b599/langchain_core-0.3.50-py3-none-any.whl", hash = "sha256:76b7ff99125d160427801ea47c4b5202363856603e8382208a889fdd914d7d4d", size = 423393 },
 ]
 
 [[package]]
@@ -1256,6 +1260,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/41/1f/e806d8fe2ca7c7d3c64ce7450accf90cfac730f20a8630550d17cc365516/langchain_groq-0.2.2.tar.gz", hash = "sha256:eefc938255aff869789d90785279b5b990ef08e1bc81150133d9a788285111c6", size = 14810 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/48/9ee597ab5b21dc7a166328a518ead1d28e02f70989a26f3b774276324552/langchain_groq-0.2.2-py3-none-any.whl", hash = "sha256:227c9db26861894d2e310cb20190f35f3713765558976e929a48714a32431eef", size = 14338 },
+]
+
+[[package]]
+name = "langchain-ollama"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "ollama" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/36/0ed0173ac8d88a0f6d769fb786a5b736f4b449093b9e47aa787ba0f6b0b4/langchain_ollama-0.3.0.tar.gz", hash = "sha256:4989f79d4b2d0d51f3a95e53b4c368c95c6bb64922a9ea40a7a376b43187803b", size = 20674 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/44/a1/a7dbdc39365f2f148a91724d8d52c0028cafe7dd6f0257462bc187bc4643/langchain_ollama-0.3.0-py3-none-any.whl", hash = "sha256:33716a912419d00a17da446f1b6ec8ec45c7b9376c6a1c0b688cc0cecd4b9c39", size = 20348 },
 ]
 
 [[package]]
@@ -1708,6 +1725,19 @@ version = "12.4.127"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/87/20/199b8713428322a2f22b722c62b8cc278cc53dffa9705d744484b5035ee9/nvidia_nvtx_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl", hash = "sha256:781e950d9b9f60d8241ccea575b32f5105a5baf4c2351cab5256a24869f12a1a", size = 99144 },
+]
+
+[[package]]
+name = "ollama"
+version = "0.4.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b0/6d/dc77539c735bbed5d0c873fb029fb86aa9f0163df169b34152914331c369/ollama-0.4.7.tar.gz", hash = "sha256:891dcbe54f55397d82d289c459de0ea897e103b86a3f1fad0fdb1895922a75ff", size = 12843 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/83/c3ffac86906c10184c88c2e916460806b072a2cfe34cdcaf3a0c0e836d39/ollama-0.4.7-py3-none-any.whl", hash = "sha256:85505663cca67a83707be5fb3aeff0ea72e67846cea5985529d8eca4366564a1", size = 13210 },
 ]
 
 [[package]]

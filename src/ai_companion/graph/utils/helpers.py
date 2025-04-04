@@ -2,6 +2,7 @@ import re
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
 from ai_companion.modules.image.image_to_text import ImageToText
@@ -18,11 +19,13 @@ def get_chat_model(temperature: float = 0.7):
             temperature=temperature,
         )
     elif settings.LLM_PROVIDER == LLMProvider.OLLAMA:
-        return ChatOpenAI(
-            api_key="ollama",  # Required but unused for Ollama
-            model_name=settings.TEXT_MODEL_NAME,
+        return ChatOllama(
+            model=settings.TEXT_MODEL_NAME,
             base_url=settings.OLLAMA_BASE_URL,
             temperature=temperature,
+            timeout=60,
+            max_retries=2,
+            streaming=False,
         )
     else:  # OpenAI
         return ChatOpenAI(

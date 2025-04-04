@@ -5,7 +5,7 @@ endif
 include .env
 
 CHECK_DIRS := .
-
+	
 ava-build-qdrant:
 	docker compose --profile qdrant_db build
 
@@ -13,13 +13,16 @@ ava-build-weaviate:
 	docker compose --profile weaviate_db build
 
 ava-run-qdrant:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml.qdrant --profile qdrant_db up
+	docker compose --profile qdrant_db up -d
 
 ava-run-weaviate:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml.weaviate --profile weaviate_db up
+	docker compose --profile weaviate_db up -d
 
-ava-stop:
-	docker compose stop
+ava-stop-qdrant:
+	docker compose --profile qdrant_db stop
+
+ava-stop-weaviate:
+	docker compose --profile weaviate_db stop
 
 ava-delete:
 	@if [ -d "long_term_memory" ]; then rm -rf long_term_memory; fi

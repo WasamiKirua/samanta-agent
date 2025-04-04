@@ -2,6 +2,8 @@ import logging
 import os
 from io import BytesIO
 from typing import Dict
+import time
+from collections import defaultdict, OrderedDict
 
 import httpx
 from fastapi import APIRouter, Request, Response
@@ -27,6 +29,31 @@ whatsapp_router = APIRouter()
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
 
+# Simple LRU cache for message deduplication (Avoid duplicate messages being processed)
+class LRUCache:
+    def __init__(self, capacity: int = 100):
+        self.cache = OrderedDict()
+        self.capacity = capacity
+        
+    def get(self, key):
+        if key not in self.cache:
+            return None
+        # Move the key to the end to show that it was recently used
+        self.cache.move_to_end(key)
+        return self.cache[key]
+        
+    def put(self, key, value):
+        if key in self.cache:
+            # Move the key to the end to show that it was recently used
+            self.cache.move_to_end(key)
+        else:
+            # Remove the first item if we're over capacity
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+        self.cache[key] = value
+        
+# Initialize the message deduplication cache (Avoid duplicate messages being processed)
+processed_messages = LRUCache(100)
 
 @whatsapp_router.api_route("/whatsapp_response", methods=["GET", "POST"])
 async def whatsapp_handler(request: Request) -> Response:
@@ -43,6 +70,19 @@ async def whatsapp_handler(request: Request) -> Response:
         change_value = data["entry"][0]["changes"][0]["value"]
         if "messages" in change_value:
             message = change_value["messages"][0]
+            
+            # Extract message ID for deduplication (Avoid duplicate messages being processed)
+            message_id = message.get("id")
+            
+            # Check if this message has already been processed (Avoid duplicate messages being processed)
+            if message_id and processed_messages.get(message_id):
+                logger.info(f"Ignoring duplicate message with ID: {message_id}")
+                return Response(content="Duplicate message", status_code=200)
+            
+            # Mark this message as processed (Avoid duplicate messages being processed)
+            if message_id:
+                processed_messages.put(message_id, time.time())
+            
             from_number = message["from"]
             session_id = from_number
 

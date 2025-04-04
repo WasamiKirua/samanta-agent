@@ -8,6 +8,7 @@ from ai_companion.modules.memory.long_term.vector_store import get_vector_store
 from ai_companion.settings import settings, LLMProvider
 from langchain_core.messages import BaseMessage
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
@@ -32,22 +33,14 @@ class MemoryManager:
         # Initialize the appropriate LLM based on provider
         if settings.LLM_PROVIDER == LLMProvider.GROQ:
             llm = ChatGroq(
-                model=settings.SMALL_TEXT_MODEL_NAME,
+                model=settings.MEMORY_MODEL_NAME,  # Use the fixed memory model name
                 api_key=settings.GROQ_API_KEY,
-                temperature=0.1,
-                max_retries=2,
-            )
-        elif settings.LLM_PROVIDER == LLMProvider.OLLAMA:
-            llm = ChatOpenAI(
-                api_key="ollama",  # Required but unused for Ollama
-                model_name=settings.SMALL_TEXT_MODEL_NAME,
-                base_url=settings.OLLAMA_BASE_URL,
                 temperature=0.1,
                 max_retries=2,
             )
         else:  # OpenAI
             llm = ChatOpenAI(
-                model=settings.SMALL_TEXT_MODEL_NAME,
+                model=settings.MEMORY_MODEL_NAME,  # Use the fixed memory model name
                 api_key=settings.OPENAI_API_KEY,
                 temperature=0.1,
                 max_retries=2,

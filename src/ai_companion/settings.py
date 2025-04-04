@@ -68,7 +68,7 @@ class Settings(BaseSettings):
             return self.OLLAMA_MODEL_NAME
         else:  # OpenAI
             return "gpt-4o-2024-08-06"
-
+    
     @property
     def SMALL_TEXT_MODEL_NAME(self) -> str:
         """Get the appropriate small text model name based on the provider."""
@@ -78,6 +78,22 @@ class Settings(BaseSettings):
             return self.OLLAMA_MODEL_NAME
         else:  # OpenAI
             return "gpt-4o-mini-2024-07-18"
+
+    @property
+    def MEMORY_MODEL_NAME(self) -> str:
+        """Get the model name for memory-related tasks (always fixed, not Ollama)."""
+        if self.LLM_PROVIDER == LLMProvider.GROQ or (self.GROQ_API_KEY and not self.OPENAI_API_KEY):
+            return "gemma2-9b-it"  # Fixed Groq model
+        else:
+            return "gpt-4o-mini"   # Fixed OpenAI model
+            
+    @property
+    def IMAGE_MODEL_NAME(self) -> str:
+        """Get the model name for image-related tasks (always fixed, not Ollama)."""
+        if self.LLM_PROVIDER == LLMProvider.GROQ or (self.GROQ_API_KEY and not self.OPENAI_API_KEY):
+            return "llama-3.1-8b-instant"  # Fixed Groq model
+        else:
+            return "gpt-4o-mini"   # Fixed OpenAI model
 
     TTI_MODEL_NAME: str = "black-forest-labs/FLUX.1-schnell-Free"
     ITT_MODEL_NAME: str = "llama-3.2-90b-vision-preview"
