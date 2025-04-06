@@ -14,6 +14,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "aiosqlite" },
     { name = "chainlit" },
+    { name = "colorama" },
     { name = "duckdb" },
     { name = "elevenlabs" },
     { name = "fastapi", extra = ["standard"] },
@@ -37,6 +38,7 @@ dependencies = [
     { name = "sentence-transformers" },
     { name = "supabase" },
     { name = "together" },
+    { name = "vastai" },
     { name = "weaviate-client" },
 ]
 
@@ -44,6 +46,7 @@ dependencies = [
 requires-dist = [
     { name = "aiosqlite", specifier = ">=0.20.0" },
     { name = "chainlit", specifier = ">=1.3.2" },
+    { name = "colorama", specifier = ">=0.4.6" },
     { name = "duckdb", specifier = ">=1.1.3" },
     { name = "elevenlabs", specifier = ">=1.50.3" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
@@ -66,6 +69,7 @@ requires-dist = [
     { name = "sentence-transformers", specifier = ">=3.3.1" },
     { name = "supabase", specifier = ">=2.11.0" },
     { name = "together", specifier = ">=1.3.10" },
+    { name = "vastai", specifier = ">=0.2.8" },
     { name = "weaviate-client", specifier = ">=4.11.3" },
 ]
 
@@ -3155,6 +3159,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/64/07/91582d69320f6f6daaf2d8072608a4ad8884683d4840e7e4f3a9dbdcc639/validators-0.34.0.tar.gz", hash = "sha256:647fe407b45af9a74d245b943b18e6a816acf4926974278f6dd617778e1e781f", size = 70955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6e/78/36828a4d857b25896f9774c875714ba4e9b3bc8a92d2debe3f4df3a83d4f/validators-0.34.0-py3-none-any.whl", hash = "sha256:c804b476e3e6d3786fa07a30073a4ef694e617805eb1946ceee3fe5a9b8b1321", size = 43536 },
+]
+
+[[package]]
+name = "vastai"
+version = "0.2.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/83/2f/4c0da2eb30cbadaf69505db3172422d9ae44dfc22d623fb8a94d4bfedc7e/vastai-0.2.8.tar.gz", hash = "sha256:efbc9976c01709bf5bdb604b9c8e192f34bbbed273ca10b484bd885e01c69303", size = 73729 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/d0/e8c73570452538f3f23f4f519fc029a17b718cf411be5a5e36086a095dc7/vastai-0.2.8-py3-none-any.whl", hash = "sha256:1818e448fef894f35ba9e3c0a7a79621fd01342bdd60afd1b20d38ab19f3af3b", size = 58851 },
 ]
 
 [[package]]

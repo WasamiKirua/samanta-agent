@@ -1,6 +1,5 @@
 import os
 from typing import Optional, Union
-from pathlib import Path
 
 from ai_companion.core.exceptions import TextToSpeechError
 from ai_companion.settings import settings, TTSProvider

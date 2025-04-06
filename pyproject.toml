@@ -30,6 +30,8 @@ dependencies = [
     "openai>=1.58.1",
     "langchain-ollama>=0.3.0",
     "ollama>=0.4.7",
+    "vastai>=0.2.8",
+    "colorama>=0.4.6",
 ]
 
 [tool.ruff]

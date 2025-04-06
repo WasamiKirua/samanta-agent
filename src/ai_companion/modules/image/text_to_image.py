@@ -5,13 +5,13 @@ from typing import Optional
 
 from ai_companion.core.exceptions import TextToImageError
 from ai_companion.core.prompts import IMAGE_ENHANCEMENT_PROMPT, IMAGE_SCENARIO_PROMPT
-from ai_companion.settings import settings, LLMProvider
+from ai_companion.settings import settings, LLMProvider, TTIProvider
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
-from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from together import Together
+from openai import OpenAI
 
 
 class ScenarioPrompt(BaseModel):
@@ -31,14 +31,15 @@ class EnhancedPrompt(BaseModel):
 
 
 class TextToImage:
-    """A class to handle text-to-image generation using Together AI."""
+    """A class to handle text-to-image generation using Together AI or OpenAI."""
 
     REQUIRED_ENV_VARS = ["GROQ_API_KEY", "TOGETHER_API_KEY", "OPENAI_API_KEY"]
 
     def __init__(self):
         """Initialize the TextToImage class and validate environment variables."""
-        #self._validate_env_vars()
-        #self._together_client: Optional[Together] = None
+        self._validate_env_vars()
+        self._together_client: Optional[Together] = None
+        self._openai_client: Optional[OpenAI] = None
         self.logger = logging.getLogger(__name__)
 
     def _validate_env_vars(self) -> None:
@@ -53,6 +54,13 @@ class TextToImage:
         if self._together_client is None:
             self._together_client = Together(api_key=settings.TOGETHER_API_KEY)
         return self._together_client
+
+    @property
+    def openai_client(self) -> OpenAI:
+        """Get or create OpenAI client instance using singleton pattern."""
+        if self._openai_client is None:
+            self._openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        return self._openai_client
 
     def _get_llm(self, temperature: float = 0.4, max_retries: int = 2):
         """Get the appropriate LLM based on the provider setting."""
@@ -72,24 +80,37 @@ class TextToImage:
             )
 
     async def generate_image(self, prompt: str, output_path: str = "") -> bytes:
-        """Generate an image from a prompt using Together AI."""
+        """Generate an image from a prompt using Together AI or OpenAI."""
         if not prompt.strip():
             raise ValueError("Prompt cannot be empty")
 
         try:
             self.logger.info(f"Generating image for prompt: '{prompt}'")
 
-            response = self.together_client.images.generate(
-                prompt=prompt,
-                model=settings.TTI_MODEL_NAME,
-                width=1024,
-                height=768,
-                steps=4,
-                n=1,
-                response_format="b64_json",
-            )
-
-            image_data = base64.b64decode(response.data[0].b64_json)
+            if settings.TTI_PROVIDER == TTIProvider.TOGETHER:
+                # Generate image using Together AI
+                response = self.together_client.images.generate(
+                    prompt=prompt,
+                    model=settings.TTI_MODEL_NAME,
+                    width=1024,
+                    height=768,
+                    steps=4,
+                    n=1,
+                    response_format="b64_json",
+                )
+                
+                image_data = base64.b64decode(response.data[0].b64_json)
+            else:  # OpenAI
+                # Generate image using OpenAI (DALL-E)
+                response = self.openai_client.images.generate(
+                    model=settings.OPENAI_TTI_MODEL_NAME,
+                    prompt=prompt,
+                    n=1,
+                    size="1024x1024",
+                    response_format="b64_json",
+                )
+                
+                image_data = base64.b64decode(response.data[0].b64_json)
 
             if output_path:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)

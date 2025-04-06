@@ -1,7 +1,4 @@
 import os
-from dataclasses import dataclass
-from datetime import datetime
-from functools import lru_cache
 from typing import List, Optional
 
 from ai_companion.modules.memory.long_term.base_vector_store import BaseVectorStore, Memory

@@ -8,7 +8,6 @@ from ai_companion.modules.memory.long_term.vector_store import get_vector_store
 from ai_companion.settings import settings, LLMProvider
 from langchain_core.messages import BaseMessage
 from langchain_groq import ChatGroq
-from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 

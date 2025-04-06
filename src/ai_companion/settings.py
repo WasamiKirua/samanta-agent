@@ -19,6 +19,14 @@ class TTSProvider(str, Enum):
     ELEVENLABS = "elevenlabs"
     OPENAI = "openai"
 
+class ITTProvider(str, Enum):
+    GROQ = "groq"
+    OPENAI = "openai"
+
+class TTIProvider(str, Enum):
+    TOGETHER = "together"
+    OPENAI = "openai"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_file_encoding="utf-8")
@@ -26,6 +34,8 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str
     OPENAI_API_KEY: str
     LLM_PROVIDER: LLMProvider = LLMProvider.GROQ
+    ITT_PROVIDER: ITTProvider = ITTProvider.GROQ
+    TTI_PROVIDER: TTIProvider = TTIProvider.TOGETHER
 
     STT_PROVIDER: STTProvider = STTProvider.GROQ
     STT_LANGUAGE: str = "en"
@@ -96,7 +106,9 @@ class Settings(BaseSettings):
             return "gpt-4o-mini"   # Fixed OpenAI model
 
     TTI_MODEL_NAME: str = "black-forest-labs/FLUX.1-schnell-Free"
-    ITT_MODEL_NAME: str = "llama-3.2-90b-vision-preview"
+    ITT_GROQ_MODEL_NAME: str = "llama-3.2-90b-vision-preview"
+    ITT_OPENAI_MODEL_NAME: str = "gpt-4o"
+    OPENAI_TTI_MODEL_NAME: str = "dall-e-3"
 
     MEMORY_TOP_K: int = 3
     ROUTER_MESSAGES_TO_ANALYZE: int = 3

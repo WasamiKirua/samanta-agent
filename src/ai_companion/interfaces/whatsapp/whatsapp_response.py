@@ -3,7 +3,7 @@ import os
 from io import BytesIO
 from typing import Dict
 import time
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 
 import httpx
 from fastapi import APIRouter, Request, Response
